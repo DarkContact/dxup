@@ -1571,31 +1571,40 @@ namespace dxup {
 
     auto swapChain = GetInternalSwapchain(0);
 
-    // 1. Получаем активный RenderTarget через существующий метод D3D9State
+    // 1. Извлекаем активный Surface 0 через m_state (указатель ->)
     IDirect3DSurface9* pActiveSurface = nullptr;
-    if (SUCCEEDED(m_state.GetRenderTarget(0, &pActiveSurface)) && pActiveSurface != nullptr) {
+    if (m_state && SUCCEEDED(m_state->GetRenderTarget(0, &pActiveSurface)) && pActiveSurface != nullptr) {
       auto activeRT = static_cast<Direct3DSurface9*>(pActiveSurface);
 
       if (swapChain) {
-        Direct3DSurface9* backBuffer = swapChain->GetBackBuffer(0);
+        // 2. Получаем бэкбуфер SwapChain через GetBackBuffer (3 аргумента)
+        IDirect3DSurface9* pBackBuffer = nullptr;
+        if (SUCCEEDED(swapChain->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)) && pBackBuffer != nullptr) {
+          auto backBuffer = static_cast<Direct3DSurface9*>(pBackBuffer);
 
-        // 2. Если игра рендерила во внешнюю поверхность, 
-        // копируем её содержимое в BackBuffer главного SwapChain
-        if (backBuffer && activeRT != backBuffer) {
-          if (activeRT->GetTexture() && backBuffer->GetTexture()) {
-            m_context->CopyResource(
-              backBuffer->GetTexture(),
-              activeRT->GetTexture()
-            );
+          if (backBuffer && activeRT != backBuffer) {
+            // 3. Получаем DXUPResource, а из него ID3D11Resource* через GetResource()
+            auto activeDXUPRes = activeRT->GetDXUPResource();
+            auto backBufferDXUPRes = backBuffer->GetDXUPResource();
+
+            if (activeDXUPRes && backBufferDXUPRes) {
+              ID3D11Resource* activeD3D11Res = activeDXUPRes->GetResource();
+              ID3D11Resource* backBufferD3D11Res = backBufferDXUPRes->GetResource();
+
+              if (activeD3D11Res && backBufferD3D11Res) {
+                m_context->CopyResource(backBufferD3D11Res, activeD3D11Res);
+              }
+            }
           }
+
+          pBackBuffer->Release();
         }
       }
 
-      // 3. Освобождаем ссылку, инкрементированную вызовом ref() внутри GetRenderTarget
       pActiveSurface->Release();
     }
 
-    // 4. Вызов Present для SwapChain 0
+    // 4. Оригинальный Present Джоша
     HRESULT result = swapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 
     m_renderer->handleDepthStencilDiscard();
