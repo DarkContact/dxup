@@ -101,7 +101,7 @@ namespace dxup {
       result = m_surface->GetDC(FALSE, phdc);
 
     if (FAILED(result))
-      return log::d3derr(D3DERR_INVALIDCALL, "GetDC: failed to get DC.");
+      return log::d3derr(D3DERR_INVALIDCALL, "GetDC: failed to get DC. (Result: 0x%X)", result);
 
     return D3D_OK;
   }
