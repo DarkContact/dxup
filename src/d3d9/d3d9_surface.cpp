@@ -97,14 +97,20 @@ namespace dxup {
       return log::d3derr(D3DERR_INVALIDCALL, "GetDC: GDI compatibility not enabled.");
 
     HRESULT result = D3DERR_INVALIDCALL;
-    if (m_surface != nullptr && phdc != nullptr)
+    if (m_surface != nullptr && phdc != nullptr) {
+      log::msg("m_surface->GetDC");
       result = m_surface->GetDC(FALSE, phdc);
+    }
 
     if (FAILED(result))
-      return log::d3derr(D3DERR_INVALIDCALL, "GetDC: failed to get DC. (Result: 0x%X)", result);
+      return log::d3derr(D3DERR_INVALIDCALL, "GetDC: failed to get DC. (Result: 0x%X, m_surface ok: %d, phdc ok: %d)",
+        result,
+        (m_surface != nullptr),
+        (phdc != nullptr));
 
     return D3D_OK;
   }
+
   HRESULT Direct3DSurface9::ReleaseDC(HDC hdc) {
     if (!config::getBool(config::GDICompatible))
       return log::d3derr(D3DERR_INVALIDCALL, "ReleaseDC: GDI compatibility not enabled.");
