@@ -127,8 +127,8 @@ namespace dxup {
     
     // Помечаем, что после GDI-рисования нужно заново восстановить RTV в D3D11
     if (m_device != nullptr) {
-      m_device->markDirty(dirtyFlags::renderTargets);
-      log::msg("GetDC: m_device->markDirty(dirtyFlags::renderTargets)");
+      m_device->SetRenderTarget(0, this);
+      log::msg("GetDC: m_device->SetRenderTarget(0, this)");
     }
 
     return D3D_OK;
@@ -145,10 +145,15 @@ namespace dxup {
     if (FAILED(result))
       return log::d3derr(D3DERR_INVALIDCALL, "ReleaseDC: failed to release DC.");
 
-    // Помечаем, что после GDI-рисования нужно заново восстановить RTV в D3D11
+    // Восстанавливаем состояние только если эта поверхность СЕЙЧАС активна в устройстве
     if (m_device != nullptr) {
-      m_device->markDirty(dirtyFlags::renderTargets);
-      log::msg("ReleaseDC: m_device->markDirty(dirtyFlags::renderTargets)");
+      Com<IDirect3DSurface9> currentRT;
+      // Проверяем, привязана ли эта поверхность к RenderTarget 0
+      if (SUCCEEDED(m_device->GetRenderTarget(0, &currentRT)) && currentRT.ptr() == this) {
+        // Принудительно восстанавливаем RTV в D3D11
+        m_device->SetRenderTarget(0, this);
+        log::msg("ReleaseDC: m_device->SetRenderTarget(0, this)");
+      }
     }
 
     return D3D_OK;
