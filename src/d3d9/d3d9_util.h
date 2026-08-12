@@ -173,18 +173,6 @@ namespace dxup {
   }
 
   template <typename T>
-  void makeStagingDesc(T& desc, UINT d3d9Usage, D3DFORMAT format) {
-    desc.CPUAccessFlags = d3d9Usage & D3DUSAGE_WRITEONLY ? D3D11_CPU_ACCESS_WRITE : D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-    if (format == D3DFMT_R8G8B8)
-      desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-    desc.Usage = D3D11_USAGE_STAGING;
-    desc.BindFlags = 0;
-    desc.MiscFlags = 0;
-
-    setGdiCompatibleFlag(desc);
-  }
-
-  template <typename T>
   void setGdiCompatibleFlag(T& desc) {
     if (config::getBool(config::GDICompatible)) {
       const bool is32BitRGB = (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM || 
@@ -197,6 +185,18 @@ namespace dxup {
         log::msg("Set flag D3D11_RESOURCE_MISC_GDI_COMPATIBLE");
       }
     }
+  }
+
+  template <typename T>
+  void makeStagingDesc(T& desc, UINT d3d9Usage, D3DFORMAT format) {
+    desc.CPUAccessFlags = d3d9Usage & D3DUSAGE_WRITEONLY ? D3D11_CPU_ACCESS_WRITE : D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+    if (format == D3DFMT_R8G8B8)
+      desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+    desc.Usage = D3D11_USAGE_STAGING;
+    desc.BindFlags = 0;
+    desc.MiscFlags = 0;
+
+    setGdiCompatibleFlag(desc);
   }
 
   inline bool isRectDegenerate(const RECT& rect) {
