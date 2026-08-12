@@ -98,6 +98,23 @@ namespace dxup {
 
     HRESULT result = D3DERR_INVALIDCALL;
     if (m_surface != nullptr && phdc != nullptr) {
+      Com<ID3D11Texture2D> tex2D;
+      if (SUCCEEDED(m_surface->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&tex2D))) {
+        D3D11_TEXTURE2D_DESC desc;
+        tex2D->GetDesc(&desc);
+
+        const bool hasGdiFlag = (desc.MiscFlags & D3D11_RESOURCE_MISC_GDI_COMPATIBLE) != 0;
+        log::msg("GetDC Texture Info: Format=%d, MiscFlags=0x%X (GDI_COMPATIBLE=%s), BindFlags=0x%X, Usage=%d, MSAA=%u",
+                  desc.Format,
+                  desc.MiscFlags,
+                  hasGdiFlag ? "YES" : "NO",
+                  desc.BindFlags,
+                  desc.Usage,
+                  desc.SampleDesc.Count);
+      } else {
+        log::msg("GetDC Texture Info: Unable to QueryInterface ID3D11Texture2D from m_surface.");
+      }
+
       log::msg("m_surface->GetDC");
       result = m_surface->GetDC(FALSE, phdc);
     }
