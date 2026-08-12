@@ -1569,14 +1569,41 @@ namespace dxup {
   HRESULT STDMETHODCALLTYPE Direct3DDevice9Ex::PresentEx(CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags) {
     CriticalSection cs(this);
 
-    // Not sure what swapchain to use here, going with this one ~ Josh
-    HRESULT result = GetInternalSwapchain(0)->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
+    auto swapChain = GetInternalSwapchain(0);
+
+    // 1. Получаем активный RenderTarget через существующий метод D3D9State
+    IDirect3DSurface9* pActiveSurface = nullptr;
+    if (SUCCEEDED(m_state.GetRenderTarget(0, &pActiveSurface)) && pActiveSurface != nullptr) {
+      auto activeRT = static_cast<Direct3DSurface9*>(pActiveSurface);
+
+      if (swapChain) {
+        Direct3DSurface9* backBuffer = swapChain->GetBackBuffer(0);
+
+        // 2. Если игра рендерила во внешнюю поверхность, 
+        // копируем её содержимое в BackBuffer главного SwapChain
+        if (backBuffer && activeRT != backBuffer) {
+          if (activeRT->GetTexture() && backBuffer->GetTexture()) {
+            m_context->CopyResource(
+              backBuffer->GetTexture(),
+              activeRT->GetTexture()
+            );
+          }
+        }
+      }
+
+      // 3. Освобождаем ссылку, инкрементированную вызовом ref() внутри GetRenderTarget
+      pActiveSurface->Release();
+    }
+
+    // 4. Вызов Present для SwapChain 0
+    HRESULT result = swapChain->Present(pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion, dwFlags);
 
     m_renderer->handleDepthStencilDiscard();
 
     if (m_pendingCursorUpdate.update)
       SetCursorPosition(m_pendingCursorUpdate.x, m_pendingCursorUpdate.y, D3DCURSOR_IMMEDIATE_UPDATE);
-    
+
+    log::msg("Direct3DDevice9Ex::PresentEx");
     return result;
   }
   HRESULT STDMETHODCALLTYPE Direct3DDevice9Ex::CreateRenderTargetEx(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9** ppSurface, HANDLE* pSharedHandle, DWORD Usage) {
