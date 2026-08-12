@@ -297,7 +297,9 @@ namespace dxup {
           desc.Format == DXGI_FORMAT_B5G5R5A1_UNORM ||
           desc.Format == DXGI_FORMAT_B4G4R4A4_UNORM ||
           desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
-          desc.Format == DXGI_FORMAT_B8G8R8X8_UNORM) {
+          desc.Format == DXGI_FORMAT_B8G8R8X8_UNORM ||
+          desc.Format == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
+          desc.Format == DXGI_FORMAT_B8G8R8X8_TYPELESS) {
         desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
         log::msg("Direct3DSurface9::Create: Set desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM");
       }
