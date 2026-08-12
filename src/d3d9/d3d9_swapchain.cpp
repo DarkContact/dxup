@@ -106,6 +106,10 @@ namespace dxup {
         rtDesc.CPUAccessFlags = 0;
         rtDesc.MiscFlags = 0;
 
+        if (config::getBool(config::GDICompatible)) {
+          rtDesc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+        }
+
         Com<ID3D11Texture2D> rtTexture;
         this->GetD3D11Device()->CreateTexture2D(&rtDesc, nullptr, &rtTexture);
 

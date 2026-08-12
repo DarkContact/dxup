@@ -180,6 +180,10 @@ namespace dxup {
     desc.Usage = D3D11_USAGE_STAGING;
     desc.BindFlags = 0;
     desc.MiscFlags = 0;
+
+    if (config::getBool(config::GDICompatible)) {
+      desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+    }
   }
 
   inline bool isRectDegenerate(const RECT& rect) {

@@ -260,6 +260,10 @@ namespace dxup {
     desc.BindFlags = 0;
     desc.MiscFlags = 0;
 
+    if (config::getBool(config::GDICompatible)) {
+      desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+    }
+
     if (!(usage & D3DUSAGE_DEPTHSTENCIL))
       desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
