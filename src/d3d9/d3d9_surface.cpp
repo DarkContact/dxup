@@ -289,6 +289,26 @@ namespace dxup {
     desc.BindFlags |= (usage & D3DUSAGE_RENDERTARGET) ? D3D11_BIND_RENDER_TARGET : 0;
     desc.BindFlags |= (usage & D3DUSAGE_DEPTHSTENCIL) ? D3D11_BIND_DEPTH_STENCIL : 0;
 
+    // Подготовка текстуры для поддержки GetDC / GDI
+    if (config::getBool(config::GDICompatible)) {
+      // 1. Повышаем 16-битные и несогласованные форматы до BGRA32,
+      // так как IDXGISurface1::GetDC работает строго с DXGI_FORMAT_B8G8R8A8_UNORM
+      if (desc.Format == DXGI_FORMAT_B5G6R5_UNORM ||
+          desc.Format == DXGI_FORMAT_B5G5R5A1_UNORM ||
+          desc.Format == DXGI_FORMAT_B4G4R4A4_UNORM ||
+          desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+          desc.Format == DXGI_FORMAT_B8G8R8X8_UNORM) {
+        desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        log::msg("Direct3DSurface9::Create: Set desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM");
+      }
+
+      // 2. Добавляем обязательный флаг совместимости с GDI
+      if (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM && desc.SampleDesc.Count == 1) {
+        desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+        log::msg("Direct3DSurface9::Create: Add D3D11_RESOURCE_MISC_GDI_COMPATIBLE to desc.MiscFlags");
+      }
+    }
+
     Com<ID3D11Texture2D> texture;
     HRESULT result = device->GetD3D11Device()->CreateTexture2D(&desc, nullptr, &texture);
 
