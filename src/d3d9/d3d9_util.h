@@ -3,6 +3,7 @@
 #include "d3d9_includes.h"
 #include "../util/log.h"
 #include "../util/shared_conversions.h"
+#include <type_traits>
 
 namespace dxup {
 
@@ -174,16 +175,20 @@ namespace dxup {
 
   template <typename T>
   void setGdiCompatibleFlag(T& desc) {
-    if (config::getBool(config::GDICompatible)) {
-      const bool is32BitRGB = (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM || 
-                               desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
-                               desc.Format == DXGI_FORMAT_B8G8R8X8_UNORM);
-      if (is32BitRGB) {
-        desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; 
-        desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
-        
-        log::msg("Set flag D3D11_RESOURCE_MISC_GDI_COMPATIBLE");
+    if constexpr (std::is_same_v<T, D3D11_TEXTURE2D_DESC>) {
+
+      if (config::getBool(config::GDICompatible)) {
+        const bool is32BitRGB = (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM || 
+                                desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+                                desc.Format == DXGI_FORMAT_B8G8R8X8_UNORM);
+        if (is32BitRGB) {
+          desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; 
+          desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+          
+          log::msg("Set flag D3D11_RESOURCE_MISC_GDI_COMPATIBLE");
+        }
       }
+      
     }
   }
 
