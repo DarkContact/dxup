@@ -124,6 +124,12 @@ namespace dxup {
         result,
         (m_surface != nullptr),
         (phdc != nullptr));
+    
+    // Помечаем, что после GDI-рисования нужно заново восстановить RTV в D3D11
+    if (m_device != nullptr) {
+      m_device->markDirty(dirtyFlags::renderTargets);
+      log::msg("GetDC: m_device->markDirty(dirtyFlags::renderTargets)");
+    }
 
     return D3D_OK;
   }
@@ -138,6 +144,12 @@ namespace dxup {
 
     if (FAILED(result))
       return log::d3derr(D3DERR_INVALIDCALL, "ReleaseDC: failed to release DC.");
+
+    // Помечаем, что после GDI-рисования нужно заново восстановить RTV в D3D11
+    if (m_device != nullptr) {
+      m_device->markDirty(dirtyFlags::renderTargets);
+      log::msg("ReleaseDC: m_device->markDirty(dirtyFlags::renderTargets)");
+    }
 
     return D3D_OK;
   }
