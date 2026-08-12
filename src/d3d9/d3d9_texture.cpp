@@ -1,5 +1,6 @@
 #include "d3d9_texture.h"
 #include "d3d9_device.h"
+#include "d3d9_util.h"
 
 namespace dxup {
 
@@ -125,9 +126,7 @@ namespace dxup {
       desc.MiscFlags |= (usage & D3DUSAGE_AUTOGENMIPMAP) ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
     }
 
-    if (config::getBool(config::GDICompatible)) {
-      desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
-    }
+    setGdiCompatibleFlag(desc);
 
     Com<ID3D11Texture2D> texture;
     HRESULT result = device->GetD3D11Device()->CreateTexture2D(&desc, nullptr, &texture);
@@ -277,9 +276,7 @@ namespace dxup {
       desc.MiscFlags |= (usage & D3DUSAGE_AUTOGENMIPMAP) ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
     }
 
-    if (config::getBool(config::GDICompatible)) {
-      desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
-    }
+    setGdiCompatibleFlag(desc);
 
     Com<ID3D11Texture2D> texture;
     HRESULT result = device->GetD3D11Device()->CreateTexture2D(&desc, nullptr, &texture);

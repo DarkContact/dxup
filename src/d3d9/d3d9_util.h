@@ -181,8 +181,21 @@ namespace dxup {
     desc.BindFlags = 0;
     desc.MiscFlags = 0;
 
+    setGdiCompatibleFlag(desc);
+  }
+
+  template <typename T>
+  void setGdiCompatibleFlag(T& desc) {
     if (config::getBool(config::GDICompatible)) {
-      desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+      const bool is32BitRGB = (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM || 
+                               desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+                               desc.Format == DXGI_FORMAT_B8G8R8X8_UNORM);
+      if (is32BitRGB) {
+        desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; 
+        desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+        
+        log::msg("Set flag D3D11_RESOURCE_MISC_GDI_COMPATIBLE");
+      }
     }
   }
 

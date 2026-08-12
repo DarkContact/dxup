@@ -1,7 +1,7 @@
 #include "d3d9_surface.h"
 #include "d3d9_format.h"
 #include "d3d9_texture.h"
-#include "d3d9_format.h"
+#include "d3d9_util.h"
 #include "../util/config.h"
 #include <algorithm>
 
@@ -260,15 +260,13 @@ namespace dxup {
     desc.BindFlags = 0;
     desc.MiscFlags = 0;
 
-    if (config::getBool(config::GDICompatible)) {
-      desc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
-    }
-
     if (!(usage & D3DUSAGE_DEPTHSTENCIL))
       desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 
     desc.BindFlags |= (usage & D3DUSAGE_RENDERTARGET) ? D3D11_BIND_RENDER_TARGET : 0;
     desc.BindFlags |= (usage & D3DUSAGE_DEPTHSTENCIL) ? D3D11_BIND_DEPTH_STENCIL : 0;
+
+    setGdiCompatibleFlag(desc);
 
     Com<ID3D11Texture2D> texture;
     HRESULT result = device->GetD3D11Device()->CreateTexture2D(&desc, nullptr, &texture);

@@ -2,6 +2,7 @@
 #include "d3d9_surface.h"
 #include "d3d9_renderer.h"
 #include "d3d9_interface.h"
+#include "d3d9_util.h"
 #include <algorithm>
 
 namespace dxup {
@@ -106,9 +107,7 @@ namespace dxup {
         rtDesc.CPUAccessFlags = 0;
         rtDesc.MiscFlags = 0;
 
-        if (config::getBool(config::GDICompatible)) {
-          rtDesc.MiscFlags |= D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
-        }
+        setGdiCompatibleFlag(rtDesc);
 
         Com<ID3D11Texture2D> rtTexture;
         this->GetD3D11Device()->CreateTexture2D(&rtDesc, nullptr, &rtTexture);
